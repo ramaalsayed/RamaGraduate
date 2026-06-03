@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Graduation</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Roboto Mono", monospace;
+        background: #000;
+        color: #00ff41;
+        overflow-x: hidden;
+        transition: all 1s ease;
+      }
+
+      body.loaded {
+        background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
+      }
+
+      /* Build Phase - موجود */
+      .build-phase {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      }
+
+      .code-editor {
+        background: #1e1e1e;
+        border: 2px solid #00ff41;
+        padding: 2rem;
+        border-radius: 10px;
+        max-width: 90%;
+        font-size: 1.1rem;
+        box-shadow: 0 0 30px #00ff41;
+        animation: glow 2s infinite alternate;
+      }
+
+      @keyframes glow {
+        0% {
+          box-shadow: 0 0 20px #00ff41;
+        }
+        100% {
+          box-shadow: 0 0 40px #00ff41;
+        }
+      }
+      .cursor {
+        animation: blink 1s infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* Success Path - موجود */
+      .success-path {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 800px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+        position: relative;
+        min-height: 250px;
+      }
+
+      .milestone {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        transition: all 0.5s ease;
+        cursor: pointer;
+        padding: 1rem;
+      }
+
+      .milestone:hover {
+        transform: scale(1.2) rotateY(360deg);
+      }
+      .milestone.active {
+        color: #ffd700;
+        text-shadow: 0 0 20px #ffd700;
+      }
+      .path-line {
+        height: 6px;
+        background: linear-gradient(90deg, #00ff41, #ffd700);
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        border-radius: 3px;
+        transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      /* === GAME SECTION === */
+      .grad-game {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: rgba(30, 30, 30, 0.95);
+        border: 2px solid #00ff41;
+        border-radius: 15px;
+        padding: 1.5rem;
+        min-width: 200px;
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+
+      .grad-game.show {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .game-score {
+        font-family: "Orbitron", monospace;
+        font-size: 1.5rem;
+        color: #ffd700;
+        margin-bottom: 1rem;
+        text-align: center;
+      }
+
+      .code-drops {
+        height: 120px;
+        overflow: hidden;
+        border: 1px solid #00ff41;
+        border-radius: 8px;
+        position: relative;
+        margin-bottom: 1rem;
+        background: rgba(0, 0, 0, 0.7);
+      }
+
+      .mini-code {
+        position: absolute;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        animation: miniFall linear infinite;
+      }
+
+      @keyframes miniFall {
+        0% {
+          transform: translateY(-30px);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(130px);
+          opacity: 0;
+        }
+      }
+
+      .mini-code:hover {
+        transform: scale(1.3) !important;
+        color: #ffd700 !important;
+        text-shadow: 0 0 10px #ffd700;
+      }
+
+      .game-btn {
+        width: 100%;
+        background: none;
+        border: 1px solid #00ff41;
+        color: #00ff41;
+        padding: 0.5rem;
+        border-radius: 6px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .game-btn:hover {
+        background: #00ff41;
+        color: #000;
+        box-shadow: 0 0 15px #00ff41;
+      }
+
+      /* === Particles Gallery Overlay === */
+      .particles-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(5px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.5s ease;
+      }
+
+      .particles-overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .particle-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1.5rem;
+        max-width: 800px;
+        width: 90%;
+      }
+
+      .gallery-particle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #00ff41, #004d00);
+        cursor: pointer;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        margin: 0 auto;
+        box-shadow: 0 0 25px rgba(0, 255, 65, 0.6);
+        animation: particleFloat 3s infinite ease-in-out;
+      }
+
+      @keyframes particleFloat {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+        }
+        33% {
+          transform: translateY(-10px) rotate(5deg);
+        }
+        66% {
+          transform: translateY(-5px) rotate(-5deg);
+        }
+      }
+
+      .gallery-particle:hover {
+        transform: scale(1.4) rotate(180deg);
+        box-shadow: 0 0 50px rgba(0, 255, 65, 1);
+      }
+
+      .gallery-particle.revealed {
+        border-radius: 15px;
+        background: linear-gradient(45deg, #ffd700, #ff6b6b);
+      }
+
+      .close-overlay {
+        position: absolute;
+        top: 30px;
+        right: 30px;
+        font-size: 2rem;
+        cursor: pointer;
+        color: #00ff41;
+        transition: 0.3s ease;
+      }
+
+      .close-overlay:hover {
+        color: #ffd700;
+        transform: rotate(90deg);
+      }
+
+      .floating-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #00ff41;
+        border-radius: 50%;
+        animation: float 3s infinite ease-in-out;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: translateY(-20px) scale(1.5);
+          opacity: 0.7;
+        }
+      }
+
+      .final-hero {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 1.5s ease;
+      }
+
+      .final-hero.show {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .grad-cap {
+        font-size: 4rem;
+        animation: bounce 2s infinite;
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+
+      .btn-neon {
+        background: none;
+        border: 2px solid #00ff41;
+        color: #00ff41;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-family: inherit;
+        font-size: 1.1rem;
+        cursor: pointer;
+        margin-top: 2rem;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .btn-neon:hover {
+        background: #00ff41;
+        color: #000;
+        box-shadow: 0 0 30px #00ff41;
+        transform: translateY(-3px);
+      }
+
+      @media (max-width: 768px) {
+        .success-path {
+          flex-direction: column;
+          gap: 3rem;
+        }
+        .path-line {
+          width: 4px;
+          height: 100%;
+          top: 0;
+          bottom: 0;
+          left: 50%;
+        }
+        .grad-game {
+          position: fixed;
+          bottom: 20px;
+          left: 20px;
+          right: 20px;
+          top: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Build Phase -->
+    <div class="build-phase" id="buildPhase">
+      <div class="code-editor">
+        <pre id="codeDisplay"><span class="cursor">|</span></pre>
+      </div>
+      <div style="margin-top: 2rem; font-size: 1.2rem">
+        Building My Success...
+      </div>
+    </div>
+
+    <!-- Success Path -->
+    <div class="success-path" id="successPath" style="display: none">
+      <div class="path-line" id="pathLine"></div>
+      <div class="milestone" data-step="1">
+        <div style="font-size: 3rem">📚</div>
+        <div>Year 1</div>
+        <div>Hello World</div>
+      </div>
+      <div class="milestone" data-step="2">
+        <div style="font-size: 3rem">🧠</div>
+        <div>Year 2</div>
+        <div>Hello World</div>
+      </div>
+      <div class="milestone" data-step="3">
+        <div style="font-size: 3rem">💻</div>
+        <div>Year 3</div>
+        <div>First Project</div>
+      </div>
+      <div class="milestone" data-step="4">
+        <div style="font-size: 3rem">🚀</div>
+        <div>Year 4</div>
+        <div>Coding Project...</div>
+      </div>
+      <div class="milestone active" data-step="5">
+        <div style="font-size: 3rem">🎓</div>
+        <div>2026</div>
+        <div>GRADUATED!</div>
+      </div>
+    </div>
+
+    <!-- 🎮 Mini Game - يشتغل مع الموقع -->
+    <div class="grad-game" id="gradGame">
+      <div class="game-score">🎮 Score: <span id="gameScore">0</span></div>
+      <div class="code-drops" id="codeDrops"></div>
+      <button class="game-btn" onclick="collectAll()">💎 Collect All</button>
+    </div>
+
+    <!-- Final Hero -->
+    <div class="final-hero" id="finalHero">
+      <div class="grad-cap">🎓</div>
+      <h1
+        style="
+          font-family: &quot;Orbitron&quot;, monospace;
+          font-size: clamp(3rem, 8vw, 6rem);
+          margin: 1rem 0;
+        "
+      >
+        Your Fav Engineer<br /><span style="color: #ffd700">GRADUATED!</span>
+      </h1>
+      <p style="font-size: 1.5rem; opacity: 0.9; max-width: 600px">
+        5 years of code, coffee, and countless late nights.<br />
+        Ready to conquer the tech world! 🚀
+      </p>
+      <div>
+        <button class="btn-neon" onclick="showParticlesGallery()">
+          🪐 Memories
+        </button>
+        <button class="btn-neon" onclick="createParticles()">
+          ✨ Celebrate!
+        </button>
+      </div>
+    </div>
+
+    <!-- Particles Overlay Gallery -->
+    <div class="particles-overlay" id="particlesOverlay">
+      <div class="close-overlay" onclick="closeParticlesGallery()">✕</div>
+      <h2
+        style="
+          font-family: &quot;Orbitron&quot;, monospace;
+          font-size: 3rem;
+          margin-bottom: 2rem;
+          text-shadow: 0 0 30px #00ff41;
+        "
+      >
+        Memory Particles ✨
+      </h2>
+      <div class="particle-gallery" id="particleGallery">
+        <div class="gallery-particle" data-mem="1"></div>
+        <div class="gallery-particle" data-mem="2"></div>
+        <div class="gallery-particle" data-mem="3"></div>
+        <div class="gallery-particle" data-mem="4"></div>
+        <div class="gallery-particle" data-mem="5"></div>
+        <div class="gallery-particle" data-mem="6"></div>
+      </div>
+    </div>
+
+    <div class="floating-particles" id="particles"></div>
+
+    <script>
+      let gameScore = 0;
+      const memories = [
+        "First Day 😊",
+        "Late Night Coding 🌙",
+        "First A+! ⭐",
+        "Internship 💼",
+        "Thesis Done 📖",
+        "GRADUATION! 🎓",
+      ];
+
+      // Build Phase (موجود)
+      const codeSteps = [
+        '<span style="color: #00ff41;">&lt;!DOCTYPE html&gt;</span>',
+        '<span style="color: #00ff41;">&lt;!DOCTYPE html&gt;</span>\n<html>',
+        '<span style="color: #00ff41;">&lt;!DOCTYPE html&gt;</span>\n<html>\n  <span style="color: #ffaa00;">&lt;body&gt;</span>',
+        '<span style="color: #00ff41;">&lt;!DOCTYPE html&gt;</span>\n<html>\n  <span style="color: #ffaa00;">&lt;body&gt;</span>\n    IT Engineer',
+        '<span style="color: #00ff41;">&lt;!DOCTYPE html&gt;</span>\n<html>\n  <span style="color: #ffaa00;">&lt;body&gt;</span>\n    <span style="color: #ffd700;">GRADUATED! 🎓</span>',
+        '<span style="color: #00ff41;">✓ Portfolio Compiled Successfully!</span>',
+      ];
+
+      let codeStep = 0;
+      function buildCode() {
+        document.getElementById("codeDisplay").innerHTML = codeSteps[
+          codeStep
+        ].replace("|", '<span class="cursor">|</span>');
+        if (codeStep < codeSteps.length - 1) {
+          codeStep++;
+          setTimeout(buildCode, 600);
+        } else {
+          setTimeout(showSuccessPath, 1500);
+        }
+      }
+
+      function showSuccessPath() {
+        document.getElementById("buildPhase").style.opacity = "0";
+        setTimeout(() => {
+          document.getElementById("buildPhase").style.display = "none";
+          document.getElementById("successPath").style.display = "flex";
+          document.body.classList.add("loaded");
+          document.getElementById("gradGame").classList.add("show");
+          animatePath();
+          startMiniGame();
+        }, 800);
+      }
+
+      function animatePath() {
+        const milestones = document.querySelectorAll(".milestone");
+        const pathLine = document.getElementById("pathLine");
+        milestones.forEach((m, i) => {
+          setTimeout(() => {
+            m.classList.add("active");
+            pathLine.style.width = `${((i + 1) / 3) * 100}%`;
+          }, i * 800);
+        });
+        setTimeout(showFinalHero, 3500);
+      }
+
+      function showFinalHero() {
+        document.getElementById("successPath").style.opacity = "0";
+        setTimeout(() => {
+          document.getElementById("successPath").style.display = "none";
+          document.getElementById("finalHero").classList.add("show");
+        }, 500);
+      }
+
+      // 🎮 Mini Game Functions
+      function startMiniGame() {
+        setInterval(createMiniCode, 1200);
+      }
+
+      function createMiniCode() {
+        const codeDrop = document.createElement("div");
+        codeDrop.className = "mini-code";
+        codeDrop.innerHTML = ["📚", "💻", "☕", "🌙", "⭐"][
+          Math.floor(Math.random() * 5)
+        ];
+        codeDrop.style.left = Math.random() * 85 + "%";
+        codeDrop.style.animationDuration = Math.random() * 2 + 2 + "s";
+
+        codeDrop.onclick = function () {
+          gameScore += 50;
+          document.getElementById("gameScore").textContent = gameScore;
+          this.style.transform = "scale(1.5)";
+          this.style.opacity = "0";
+          setTimeout(() => this.remove(), 300);
+        };
+
+        document.getElementById("codeDrops").appendChild(codeDrop);
+        setTimeout(() => codeDrop.remove(), 4500);
+      }
+
+      function collectAll() {
+        gameScore += 200;
+        document.getElementById("gameScore").textContent = gameScore;
+        document.getElementById("codeDrops").innerHTML = "";
+        createParticles();
+      }
+
+      // 🪐 Particles Gallery
+      function showParticlesGallery() {
+        document.getElementById("particlesOverlay").classList.add("show");
+      }
+
+      function closeParticlesGallery() {
+        document.getElementById("particlesOverlay").classList.remove("show");
+      }
+
+      document
+        .getElementById("particleGallery")
+        .addEventListener("click", (e) => {
+          if (e.target.classList.contains("gallery-particle")) {
+            const memIndex = e.target.dataset.mem - 1;
+            e.target.classList.add("revealed");
+            setTimeout(() => {
+              alert(`✨ ${memories[memIndex]} ✨`);
+              e.target.classList.remove("revealed");
+            }, 800);
+          }
+        });
+
+      function createParticles() {
+        const particles = document.getElementById("particles");
+        for (let i = 0; i < 60; i++) {
+          const particle = document.createElement("div");
+          particle.className = "particle";
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.top = Math.random() * 100 + "%";
+          particle.style.animationDelay = Math.random() * 3 + "s";
+          particle.style.animationDuration = Math.random() * 2 + 2 + "s";
+          particle.style.background = [
+            "#00ff41",
+            "#ffd700",
+            "#ff6b6b",
+            "#00ffff",
+          ][Math.floor(Math.random() * 4)];
+          particles.appendChild(particle);
+          setTimeout(() => particle.remove(), 6000);
+        }
+      }
+
+      // Keyboard Easter Eggs
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "g" || e.key === "G") {
+          collectAll();
+        } else if (e.key === "p" || e.key === "P") {
+          showParticlesGallery();
+        }
+      });
+
+      // Start everything
+      setTimeout(buildCode, 500);
+
+      // Mobile responsive
+      window.addEventListener("resize", () => {
+        if (window.innerWidth < 768) {
+          document.body.style.fontSize = "1rem";
+        }
+      });
+
+      // Auto-show game instructions
+      setTimeout(() => {
+        if (confirm("🎮 Want to play Graduation Game?\nClick falling codes!")) {
+          document.getElementById("gradGame").style.background =
+            "rgba(0,255,65,0.2)";
+        }
+      }, 5000);
+    </script>
+  </body>
+</html>
